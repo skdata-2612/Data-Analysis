@@ -12,18 +12,16 @@ The SQL queries used to inspect and clean the data for this analysis can be foun
 
 Targed SQL queries regarding various business questions can be found here [link].
 
-An interactive Tableau dashboard used to report and explore sales trends can be found here [link].
+An interactive Power BI dashboard used to report and explore sales trends can be found here [link].
 
 
 
 # Data Structure & Initial Checks
 
-The companies main database structure as seen below consists of four tables: table1, table2, table3, table4, with a total row count of X records. A description of each table is as follows:
+The companies main database structure as seen below consists of four tables: table1, table2 with a total row count of X records. A description of each table is as follows:
+- **Table 1:**
 - **Table 2:**
-- **Table 3:**
-- **Table 4:**
-- **Table 5:**
-
+  
 [Entity Relationship Diagram here]
 
 
