@@ -62,9 +62,10 @@ Key fields include:
 - Confirm date consistency
 - Standardize categorical values
 - Create Net Revenue metrics
+
  
-  
-[Entity Relationship Diagram here]
+
+<img width="893" height="536" alt="erd" src="https://github.com/user-attachments/assets/800394f1-7ea8-459a-b8f1-551d5ae102cd" />
 
 
 
