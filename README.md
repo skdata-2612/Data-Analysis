@@ -75,7 +75,7 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 
 
 # Insights Deep Dive
-### Category 1:
+1. Sales Performance Analysis:
 
 * **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
@@ -88,7 +88,7 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 [Visualization specific to category 1]
 
 
-### Category 2:
+2. Product Performance Analysis:
 
 * **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
@@ -101,7 +101,7 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 [Visualization specific to category 2]
 
 
-### Category 3:
+3. Customer Acquisition and Marketing Effectiveness:
 
 * **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
@@ -114,7 +114,7 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 [Visualization specific to category 3]
 
 
-### Category 4:
+4. Regional Performance Analysis:
 
 * **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
