@@ -84,8 +84,11 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 * **Main insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
 * **Main insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+  
 
-[Visualization specific to category 1]
+<img width="1052" height="437" alt="image" src="https://github.com/user-attachments/assets/4cb60620-4198-45c8-9209-4017491df4fa" />
+
+
 
 
 2. Product Performance Analysis:
