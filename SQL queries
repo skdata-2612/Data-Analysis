@@ -1,0 +1,1492 @@
+create table orders (
+USER_ID varchar(50),
+ORDER_ID varchar(50),
+PURCHASE_TS date,
+SHIP_TS date,
+PRODUCT_NAME text,
+PRODUCT_ID varchar,
+USD_PRICE decimal,
+PURCHASE_PLATFORM text,
+MARKETING_CHANNEL text,
+ACCOUNT_CREATION_METHOD text,
+COUNTRY_CODE varchar
+);
+
+select * from orders limit 10;
+
+create table region (
+COUNTRY_CODE varchar,
+REGION varchar
+);
+
+-- created staging table for region to impute the correspodent region of that country
+CREATE TABLE staging_region (LIKE region INCLUDING ALL);
+
+insert into staging_region
+select * from region;
+
+select * from staging_region limit 5
+
+
+select * from region limit 5;
+
+select count(*) filter (where user_id is null) as null_user_count,
+count(*) filter (where order_id is null) as null_order_count,
+count(*) filter (where purchase_ts is null) as null_purchase_ts,
+count(*) filter (where ship_ts is null) as null_ship_ts,
+count(*) filter (where product_name is null) as null_product_name,
+count(*) filter (where product_id is null) as null_product_id,
+count(*) filter (where usd_price is null) as null_usd_price,
+count(*) filter (where purchase_platform is null) as null_purchase_platform,
+count(*) filter (where marketing_channel is null) as null_market_channel,
+count(*) filter (where account_creation_method is null) as null_account_creation_method,
+count(*) filter (where country_code is null) as null_country_code
+from orders;
+
+select distinct(product_name) from orders;
+
+select product_name, count(*)
+from orders
+where product_name in ('27in 4K gaming monitor', '27inches 4k gaming monitor' )
+group by product_name;
+
+begin;
+
+update orders
+set product_name= replace(product_name, '27inches 4k gaming monitor', '27in 4K gaming monitor');
+
+commit;
+
+select distinct(product_name) from orders
+where product_name like '27%';
+
+
+select distinct(purchase_platform) from orders;
+
+-- recatgorizing null as unknown in the marketing channel field
+select distinct(marketing_channel) from orders;
+
+begin;
+
+update orders
+set marketing_channel= 'unknown'
+where marketing_channel is null;
+commit;
+
+select marketing_channel, count(*) as total_count
+from orders
+where marketing_channel= 'unknown'
+group by marketing_channel;
+
+select distinct(country_code) from orders;
+
+select country_code, count(*) from orders
+where country_code is null
+group by country_code;
+
+select * from region limit 5;
+
+-- 2 null count
+select count(*) filter (where region is null) as null_region_count
+from region;
+
+select country_code
+from region
+where region= 'X.x';
+
+select distinct(region) from region;
+
+begin;
+
+update region
+set region= 'APAC'
+where country_code IN ('MH', 'PG');
+
+commit;
+
+
+select * from orders o
+left join region r
+on o.country_code= r.country_code
+where o.country_code IN ('MH', 'PG');
+
+-- checks for shipment delay
+
+select * 
+from (select purchase_ts, ship_ts, 
+case when ship_ts < purchase_ts then 'product shipped before purchase' 
+else 'normal' end as checking_bucket, (ship_ts-purchase_ts) as delay_days
+from orders) t
+where t.delay_days < 0
+and t.purchase_ts is not null;
+
+select count(*)
+from orders
+where purchase_ts is not null and
+ship_ts < purchase_ts;
+
+-- time series analysis
+-- sales trend over years
+
+select * from orders limit 5;
+
+select product_name, sum(usd_price) as revenue
+from orders
+where usd_price is not null
+group by product_name
+order by revenue desc;
+
+-- yoy 
+select extract(year from purchase_ts) as year, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts)
+order by year;
+
+-- mom
+
+select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month_no, 
+to_char(purchase_ts, 'Month') as month, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by 1, 2, 3
+order by year, month_no;
+
+-- current vs previous comparison
+with sales as 
+ ( select extract(year from purchase_ts) as year, sum(usd_price) as revenue
+ from orders
+ where purchase_ts is not null
+ group by extract(year from purchase_ts)
+ )
+
+select year, revenue, coalesce(lag(revenue) over(order by year), 0) as prev_sales,
+coalesce((revenue - lag(revenue) over(order by year)), 0) as yoy_diff,
+round(
+(revenue-lag(revenue) over(order by year))/revenue * 100, 1) as pct_diff
+from sales;
+
+-- mom comparison
+
+with sales as 
+ ( select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month, 
+ to_char(purchase_ts, 'Month') as month_name, sum(usd_price) as revenue
+ from orders
+ where purchase_ts is not null
+ group by extract(year from purchase_ts), extract(month from purchase_ts), to_char(purchase_ts, 'Month')
+ )
+
+select year, month, month_name, revenue, coalesce(lag(revenue) over(partition by year order by year, month), 0) as prev_sales,
+coalesce((revenue - lag(revenue) over(partition by year order by year, month)), 0) as mom_diff,
+round(
+(revenue-lag(revenue) over(partition by year order by year, month))/revenue * 100, 1) as pct_diff
+from sales;
+
+select product_name, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null 
+and purchase_ts >= '2021-03-01'
+and purchase_ts <= '2021-03-31'
+group by product_name
+order by revenue;
+
+select extract(year from purchase_ts) as year, 
+sum(case when product_name= 'Dell Gaming Mouse' then usd_price end)
+as Dell_Gaming_Mouse
+from orders
+where purchase_ts is not null
+group by 1;
+
+select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month, 
+sum(usd_price) as revenue, count(order_id) as total_orders
+from orders
+where product_name= 'Dell Gaming Mouse'
+and purchase_ts is not null
+group by 1, 2
+order by year, month;
+
+-- MoM pct change
+
+with total_sales as
+( select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month, 
+  sum(usd_price) as revenue
+	from orders
+	where purchase_ts is not null
+	and product_name= 'Dell Gaming Mouse'
+	group by 1, 2)
+
+select year, month, revenue,
+lag(revenue) over(partition by year order by month) as prev_sales,
+(revenue - lag(revenue) over(partition by year order by month)) as mom_diff,
+round((revenue - lag(revenue) over(partition by year order by month))/ revenue*100, 1) as pct_diff
+from total_sales;
+
+-- check for duplicate order_id 
+
+select distinct(order_id), count(user_id) as total_orders
+from orders
+group by order_id
+having count(user_id) > 1;
+
+
+-- optimize email marketing to increase sales for this specific product
+select *
+from orders
+where product_name= 'Dell Gaming Mouse'
+and purchase_ts is not null
+and purchase_ts >= '2021-03-01' and 
+purchase_ts <= '2021-03-31';
+
+
+select marketing_channel, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+--and extract(year from purchase_ts)= 2019 (1120.82)
+group by marketing_channel
+order by revenue desc;
+
+
+select sum(case when marketing_channel= 'unknown' then usd_price else 0 end)
+from orders;
+
+
+select round(sum(case when marketing_channel= 'unknown' then usd_price else 0 end) / sum(usd_price)*100.0, 2)
+from orders;
+
+select sum(usd_price) as revenue from orders; (6151266.49)
+
+-- top 5 products per year
+with ranked_sales as 
+	(select extract(year from purchase_ts) as year,  product_name, sum(usd_price) as revenue,
+	row_number() over(partition by extract(year from purchase_ts) order by sum(usd_price) desc) as rn
+	from orders
+	where purchase_ts is not null
+	group by 1, 2
+)
+
+select year, product_name, revenue, rn
+from ranked_sales
+where rn<=5;
+
+create view top_5_products as
+with ranked_sales as 
+	(select extract(year from purchase_ts) as year,  product_name, sum(usd_price) as revenue,
+	row_number() over(partition by extract(year from purchase_ts) order by sum(usd_price) desc) as rn
+	from orders
+	where purchase_ts is not null
+	group by 1, 2
+)
+
+select year, product_name, revenue, rn
+from ranked_sales
+where rn<=5;
+
+select * from top_5_products
+where rn=1;
+
+select user_id, count(*) as order_count
+from orders
+where purchase_ts is not null
+group by user_id
+having count(*) >1
+order by order_count desc;
+
+-- revenue by purchase platform
+
+select user_id, country_code, purchase_platform, sum(usd_price) as total_sales
+from orders
+where usd_price not in (
+select sum(usd_price) from orders where usd_price = 0)
+group by user_id, country_code, purchase_platform 
+order by total_sales desc
+limit 10;
+
+select count(distinct(purchase_platform)) from orders;
+select distinct(purchase_platform) from orders;
+
+select purchase_platform, sum(usd_price) as revenue
+from orders
+group by purchase_platform
+
+with cte as 
+(select sum(case when purchase_platform = 'mobile app' then usd_price else 0 end) as  mobile, 
+sum(case when purchase_platform = 'website' then usd_price else 0 end) as  website,
+sum(usd_price) as total_revenue
+from orders)
+
+select round(mobile/total_revenue*100.0, 2) as pct_mobile,
+round(website/total_revenue*100.0, 2) as pct_website
+from cte;
+
+-- aov
+
+with top_products_aov as 
+	(select extract(year from purchase_ts) as year, product_name,
+	round(sum(usd_price)/count(distinct(order_id)),1) as aov,
+	row_number() over(partition by extract(year from purchase_ts) order by sum(usd_price)/count(distinct(order_id)) desc) as rn
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), product_name
+	order by year, aov desc)
+	
+select year, product_name, aov
+from top_products_aov
+where rn=1;
+
+-- revenue by account creation method
+
+-- users who uses desktop to create an account being the top in driving revenue
+
+SELECT 
+    account_creation_method,
+    SUM(usd_price) AS revenue,
+    round((SUM(usd_price) * 100.0 / SUM(SUM(usd_price)) OVER()), 2) AS pct_of_total
+FROM orders
+GROUP BY account_creation_method
+order by revenue desc;
+
+select extract(year from purchase_ts) as year, account_creation_method, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts), account_creation_method
+order by year, revenue desc;
+
+with ranked_sales as 
+	(select extract(year from purchase_ts) as year, account_creation_method, sum(usd_price) as revenue,
+	row_number() over(partition by extract(year from purchase_ts) order by sum(usd_price) desc) as rn,
+	round(100.0*sum(usd_price)/sum(sum(usd_price)) over(), 2) as pct_total
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), account_creation_method
+	order by year, revenue desc)
+	
+select year, account_creation_method, revenue, pct_total
+from ranked_sales
+where rn=1
+order by revenue desc;
+
+--found 2 nulls in the region field
+select count(*) filter (where country_code is null) as null_country_code,
+count(*) filter (where region is null) as null_region
+from region;
+
+select * from region
+where region is null;
+
+select *
+from region
+where country_code= 'IE';
+
+begin;
+update region
+set region= 'EU'
+where country_code ='IE' and region is null;
+
+commit;
+
+update region
+set region= 'LB'
+where country_code= 'LB' and region is null;
+
+select distinct(country_code) from region;
+select distinct(region) from region;
+
+-- sales by region
+
+-- region 'NA' scores the highest when it comes to make revenue across years
+
+select extract(year from orders.purchase_ts) as year, region.region, sum(orders.usd_price) as revenue
+from region
+left join orders
+on region.country_code= orders.country_code
+where orders.purchase_ts is not null
+group by extract(year from orders.purchase_ts), region.region
+order by year, revenue desc;
+
+-- repeat purchase rate
+
+select user_id, count(order_id), 
+count(user_id)
+from orders
+group by user_id
+having count(order_id) > 1
+
+select order_id, count(*)
+from orders
+where purchase_ts is not null
+group by order_id
+having count(*) > 1;
+
+with user_orders as
+(select user_id, count(order_id) as order_count
+ from orders
+ group by user_id)
+
+select count(*), 
+count(case when order_count > 1 then 1 end) as repeat_users,
+count(case when order_count > 1 then 1 end)*1.0/count(distinct(user_id)) as repeat_purchase_rate
+from user_orders;
+
+WITH user_orders AS (
+  SELECT user_id, COUNT(order_id) AS order_count
+  FROM orders
+  GROUP BY user_id
+)
+
+SELECT 
+  COUNT(*) AS total_users,
+  COUNT(CASE WHEN order_count > 1 THEN 1 END) AS repeat_users,
+  round(COUNT(CASE WHEN order_count > 1 THEN 1 END) * 100.0 / COUNT(*), 2) AS repeat_purchase_rate
+FROM user_orders;
+
+select distinct(product_name) from orders;
+
+
+select extract(year from purchase_ts) as year, 
+product_name, sum(usd_price) as revenue,
+round((sum(usd_price))/sum(sum(usd_price)) over()*100.0, 2) as revenue_pct_per_product
+from orders
+where purchase_ts is not null
+group by year, product_name
+order by year, revenue desc;
+
+select product_name, sum(usd_price) as revenue from orders
+group by product_name
+order by revenue desc
+limit 3;
+
+with ranked_sales as 
+	(select date_part('year', purchase_ts) as year,
+	product_name, sum(usd_price) as revenue,
+	row_number() over(partition by date_part('year', purchase_ts) order by sum(usd_price) desc) as rn
+	from orders
+	where purchase_ts is not null
+	group by date_part('year', purchase_ts), product_name)
+
+select year, product_name, revenue
+from ranked_sales
+where rn <=3
+order by year;
+
+
+select order_id, count(*) as unique_orders
+from orders
+where order_id not in
+	(select order_id
+	from orders
+	where purchase_ts is not null
+	group by order_id
+	having count(*) > 1
+	)
+group by order_id;
+
+select count(*) from orders
+
+select order_id, count(*)
+from orders
+group by order_id
+having count(*) >1
+
+-- to assess the percent of total orders per channel
+-- direct marketing scores the highest when compared to other channels in terms of revenue and orders
+-- by investing money on direct marketing can help to increase revenue as well as orders
+
+select marketing_channel, count(order_id) as orders_per_marketing_channel,
+round(count(order_id)/sum(count(order_id)) over()*100.0, 2) as orders_pct
+from orders
+where purchase_ts is not null
+group by marketing_channel
+order by orders_per_marketing_channel desc;
+
+-- top sales per country
+select country_code, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+and country_code is not null
+group by country_code
+order by revenue desc;
+
+-- checking nulls in the country_code field
+select count(*) filter(where country_code is null) from orders;
+
+select distinct(account_creation_method) 
+from orders;
+
+select account_creation_method, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by account_creation_method
+order by revenue desc;
+
+select date_part('year', purchase_ts) as year, date_part('month', purchase_ts) as month, 
+sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by 1, 2
+order by year, month
+
+create view date as
+select purchase_ts as date, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by purchase_ts
+order by date
+
+select * from date
+
+select extract(dow from purchase_ts) as day, to_char(purchase_ts, 'day') as day_in_text, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by 1, 2
+order by day
+
+select orders.country_code, region.region, sum(orders.usd_price) as revenue
+from orders
+join region
+on orders.country_code= region.country_code
+where purchase_ts is not null
+group by 1, 2
+order by revenue desc
+
+select round(sum(usd_price)/count(distinct(order_id)), 1) as aov
+from orders
+where purchase_ts is not null
+
+select product_name, round(sum(usd_price)/count(distinct(order_id))) as aov,
+count(order_id) as total_orders,
+sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by product_name
+order by aov desc
+
+-- Are there seasonal or time-based purchase trends?
+
+with sales_diff as
+	(select extract(year from purchase_ts) as year,extract(month from purchase_ts) as month, 
+	sum(usd_price) as revenue,
+	lag(sum(usd_price)) over(order by extract(year from purchase_ts), 
+	extract(month from purchase_ts)) as prev_sales
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts))
+
+select  month, revenue,
+round((revenue-prev_sales)/prev_sales*100, 2) as prev_sales_diff
+from sales_diff
+
+with monthly_sales as (
+    select 
+        extract(year from purchase_ts) as year,
+        extract(month from purchase_ts) as month,
+        sum(usd_price) as revenue
+    from orders
+    where purchase_ts is not null
+    group by extract(year from purchase_ts), extract(month from purchase_ts)
+)
+select 
+    year,
+    month,
+    revenue,
+    lag(revenue) over(partition by month order by year) as prev_year_revenue,
+    round(
+        (revenue - lag(revenue) over(partition by month order by year)) 
+        / lag(revenue) over(partition by month order by year) * 100, 
+        2
+    ) as yoy_growth
+from   monthly_sales
+order by year, month;
+
+-- year sales and prev year sales
+
+select *
+from 
+(select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month, 
+sum(usd_price) as revenue,
+lag(sum(usd_price)) over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts))
+as prev_sales,
+sum(usd_price)-lag(sum(usd_price)) 
+over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)) as abs_diff,
+round((sum(usd_price)-lag(sum(usd_price)) 
+over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)))/
+lag(sum(usd_price)) 
+over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts))*100, 2) as pct_diff
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts), extract(month from purchase_ts)
+order by year, month) t 
+where t.month= 12;
+
+-- yoy comparison
+select extract(year from purchase_ts) as year, sum(usd_price) as revenue,
+lag(sum(usd_price)) over(order by extract(year from purchase_ts)) as prev_year_sales,
+sum(usd_price)- lag(sum(usd_price)) over(order by extract(year from purchase_ts)) as abs_diff,
+round((sum(usd_price)- lag(sum(usd_price)) over(order by extract(year from purchase_ts)))/
+lag(sum(usd_price)) over(order by extract(year from purchase_ts))*100, 2) as pct_diff
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts);
+
+-- Monthly YoY
+select 
+  extract(year from purchase_ts) as year,
+  extract(month from purchase_ts) as month,
+  sum(usd_price) as revenue,
+  lag(sum(usd_price)) over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)) as prev_sales,
+  sum(usd_price) - lag(sum(usd_price)) over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)) as abs_diff,
+  round(
+    (sum(usd_price) - lag(sum(usd_price)) over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)))
+    / lag(sum(usd_price)) over(partition by extract(month from purchase_ts) order by extract(year from purchase_ts)) * 100, 2
+  ) as pct_diff,
+  'Monthly' as comparison_type
+from orders
+where purchase_ts is not null
+group by year, month
+
+union all
+
+-- Annual YoY
+select 
+  extract(year from purchase_ts) as year,
+  null as month,
+  sum(usd_price) as revenue,
+  lag(sum(usd_price)) over(order by extract(year from purchase_ts)) as prev_sales,
+  sum(usd_price) - lag(sum(usd_price)) over(order by extract(year from purchase_ts)) as abs_diff,
+  round(
+    (sum(usd_price) - lag(sum(usd_price)) over(order by extract(year from purchase_ts)))
+    / lag(sum(usd_price)) over(order by extract(year from purchase_ts)) * 100, 2
+  ) as pct_diff,
+  'Annual' as comparison_type
+from orders
+where purchase_ts is not null
+group by year
+order by comparison_type, year, month;
+
+WITH monthly_sales AS (
+    SELECT 
+        DATE_TRUNC('month', purchase_ts) AS sales_month,
+        sum(usd_price) AS revenue
+    FROM orders
+	where purchase_ts is not null
+    GROUP BY sales_month
+)
+SELECT 
+    sales_month,
+    revenue,
+    round(AVG(revenue) OVER (ORDER BY sales_month ROWS BETWEEN 2 
+      PRECEDING AND CURRENT ROW), 2) AS moving_avg_3_month
+FROM monthly_sales;
+
+--  overall top 10 users
+
+select user_id, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+and usd_price is not null
+group by user_id
+order by revenue desc
+limit 10;
+
+select count(*) filter(where usd_price is null) from orders;
+
+--top 10 users per year
+
+with ranked_sales as
+(select extract(year from purchase_ts), user_id, sum(usd_price) as revenue,
+dense_rank() over(partition by extract(year from purchase_ts) order by sum(usd_price) desc) as rnk
+from orders
+where purchase_ts is not null
+and usd_price is not null
+group by extract(year from purchase_ts), user_id
+)
+
+select *
+from ranked_sales
+where rnk<=10
+
+-- top 3 products per year
+
+select year, product_name, revenue
+from (
+select extract(year from purchase_ts) as year, 
+product_name, sum(usd_price) as revenue,
+dense_rank() over(partition by extract(year from purchase_ts) order by sum(usd_price) desc) as rnk
+from orders
+where purchase_ts is not null
+and usd_price is not null
+group by extract(year from purchase_ts), product_name) t
+where t.rnk<=3 ;
+
+-- weekly totals
+create view weekly_revenue as
+select date_trunc('week', purchase_ts) as week, 
+sum(usd_price) as revenue,
+lag(sum(usd_price)) over(order by date_trunc('week', purchase_ts)) as prev_sales,
+sum(usd_price)- lag(sum(usd_price)) over(order by date_trunc('week', purchase_ts)) as sales_diff,
+round
+((sum(usd_price)- lag(sum(usd_price)) over(order by date_trunc('week', purchase_ts)))/
+lag(sum(usd_price)) over(order by date_trunc('week', purchase_ts))*100, 2) as pct_diff
+from orders
+where purchase_ts is not null
+group by date_trunc('week', purchase_ts);
+
+select * from weekly_revenue
+
+-- aov difference
+select extract(year from purchase_ts) as year, round(sum(usd_price)/count(distinct(order_id)), 2) as aov,
+round(lag(sum(usd_price)/count(distinct(order_id))) over(order by extract(year from purchase_ts)), 2) as prev_year_aov
+, round(sum(usd_price)/count(distinct(order_id))- 
+lag(sum(usd_price)/count(distinct(order_id))) over(order by extract(year from purchase_ts)), 2) as abs_diff,
+round
+((sum(usd_price)/count(distinct(order_id))- 
+lag(sum(usd_price)/count(distinct(order_id))) over(order by extract(year from purchase_ts)))*100/
+lag(sum(usd_price)/count(distinct(order_id))) over(order by extract(year from purchase_ts)), 2) as pct_diff
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts);
+
+-- findings: 27in 4k gaming monitor scores the highest in terms of aov and order counts
+-- sony playstation 5 bundle being the top amongst other products by aov because it's expensive when compared to other
+-- products, giving offers or discounts might help to increase the order count and aov as well
+-- focusing on lenovo, sony and 27in 4k gaming monitor are revenue drivers,  by giving bundles, gifts or discount vouchers
+-- we can increase the aov and order count.
+
+-- razer pro gaming headset and JBL quantum 100 gaming headset are low performing products in terms of aov 
+-- but the order count for jbl headset is very high due to the low price
+-- razor pro gaming headset generates high aov compared to dell gaming mouse and jbl quantum but the order count is 
+-- very small, reducing the price or giving discounts might help to increase the order count
+
+select product_name, round(sum(usd_price)/count(distinct(order_id)), 2) as aov, 
+count(order_id) as order_count
+from orders
+where purchase_ts is not null
+group by product_name
+order by aov desc;
+
+-- sony playstation 5 bundle being the top
+select year, product_name, aov
+from 
+	(select extract(year from purchase_ts) as year, 
+	product_name, round(sum(usd_price)/count(distinct(order_id)), 2) as aov,
+	rank() over(partition by extract(year from purchase_ts) 
+	order by sum(usd_price)/count(distinct(order_id)) desc) as rnk
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), product_name
+	order by year, aov desc) t
+where t.rnk<=3;
+
+-- for benchmarking
+
+with revenue as
+	(select product_name, 
+	sum(usd_price)/count(distinct(order_id)) as aov,
+	sum(usd_price) as revenue,
+	count(order_id) as total_orders
+	from orders
+	where purchase_ts is not null
+	group by product_name)
+
+select 
+	product_name, round(avg(aov), 2) as avg_aov,
+	round(avg(total_orders), 2) as avg_order_counts
+	from revenue
+	group by product_name;
+
+with product_metrics as (
+  select 
+    product_name,
+    round(sum(usd_price)/count(distinct order_id), 2) as aov,
+    count(order_id) as order_count
+  from orders 
+  where purchase_ts is not null
+  group by product_name
+),
+
+benchmarks as (
+  select 
+    avg(aov) as avg_aov,
+    avg(order_count) as avg_orders
+  from product_metrics
+),
+
+cat as (
+select 
+  p.product_name,
+  p.aov,
+  p.order_count,
+  case 
+    when p.aov >= b.avg_aov and p.order_count >= b.avg_orders then 'Star'
+    when p.aov >= b.avg_aov and p.order_count < b.avg_orders then 'Premium Niche'
+    when p.aov < b.avg_aov and p.order_count >= b.avg_orders then 'Volume Driver'
+    else 'Low Performer'
+  end as segment
+from product_metrics p
+cross join benchmarks b
+order by segment, p.aov desc)
+
+select *
+from cat
+where segment= 'Volume Driver';
+
+-- customer insights
+-- How many unique users are purchasing over time?
+
+select extract(year from purchase_ts) as year, 
+extract(month from purchase_ts) as month, count(distinct(user_id)) as unique_customer_count, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts), extract(month from purchase_ts)
+order by year
+
+-- mom customer difference
+
+-- could easily tell that the customers are more tend to buy in the winter season 
+-- there's a seasonal pattern we can see in these months november an december
+-- customers are very likely to buy products in these months for the upcoming winter holidays
+-- we need to monitor and increase our stocks in these months to get higher aov's and we can easily avoid overstocking
+
+with customers as
+	(select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month,
+	count(distinct(user_id)) as unique_customer_count, 
+	lag(count(distinct(user_id))) over(order by extract(year from purchase_ts), extract(month from purchase_ts))
+	as prev_cust_count
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts))
+
+select year, month, unique_customer_count, prev_cust_count, 
+(unique_customer_count - prev_cust_count) as abs_diff,
+round((unique_customer_count - prev_cust_count)/(prev_cust_count::decimal)*100, 1) as pct
+from customers
+
+select distinct(country_code) from orders
+where country_code is not null;
+
+select extract(year from purchase_ts) as year, count(distinct(user_id)) as unique_customers
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts)
+
+-- for pivot calculation
+SELECT
+    COUNT(DISTINCT CASE WHEN EXTRACT(YEAR FROM purchase_ts) = 2019 THEN user_id END) AS "2019",
+    COUNT(DISTINCT CASE WHEN EXTRACT(YEAR FROM purchase_ts) = 2020 THEN user_id END) AS "2020",
+    COUNT(DISTINCT CASE WHEN EXTRACT(YEAR FROM purchase_ts) = 2021 THEN user_id END) AS "2021"
+FROM orders
+WHERE purchase_ts IS NOT NULL;
+
+-- Repeat Purchase Rate
+
+with repeat_customers as (
+    select user_id, count(*) as total_orders
+    from orders
+    where purchase_ts is not null
+    group by user_id
+    having count(*) >= 2
+)
+select round
+((count(*) * 100.0 / (select count(distinct user_id) from orders where purchase_ts is not null)), 2) 
+as repeat_purchase_rate
+from repeat_customers;
+
+WITH customer_orders AS (
+    SELECT
+        user_id,
+        EXTRACT(YEAR FROM purchase_ts) AS year,
+        COUNT(order_id) AS orders_count
+    FROM orders
+    WHERE purchase_ts IS NOT NULL
+    GROUP BY user_id, year
+),
+summary AS (
+    SELECT
+        year,
+        COUNT(DISTINCT user_id) AS total_customers,
+        COUNT(DISTINCT CASE WHEN orders_count >= 2 THEN user_id END) AS repeat_customers
+    FROM customer_orders
+    GROUP BY year
+)
+SELECT
+    year,
+    total_customers,
+    repeat_customers,
+    ROUND((repeat_customers::numeric / total_customers::numeric) * 100, 2) AS repeat_purchase_rate
+FROM summary
+ORDER BY year;
+
+WITH first_purchase AS (
+    SELECT
+        user_id,
+        MIN(EXTRACT(YEAR FROM purchase_ts)) AS cohort_year
+    FROM orders
+	where purchase_ts is not null
+    GROUP BY user_id
+),
+customer_yearly AS (
+    SELECT
+        o.user_id,
+        f.cohort_year,
+        EXTRACT(YEAR FROM o.purchase_ts) AS purchase_year,
+        COUNT(o.order_id) AS orders_count
+    FROM orders o
+    JOIN first_purchase f ON o.user_id = f.user_id
+    GROUP BY o.user_id, f.cohort_year, purchase_year
+),
+summary AS (
+    SELECT
+        cohort_year,
+        purchase_year,
+        COUNT(DISTINCT user_id) AS total_customers,
+        COUNT(DISTINCT CASE WHEN orders_count >= 2 THEN user_id END) AS repeat_customers
+    FROM customer_yearly
+    GROUP BY cohort_year, purchase_year
+)
+SELECT
+    cohort_year,
+    purchase_year,
+    total_customers,
+    repeat_customers,
+    ROUND((repeat_customers::numeric / total_customers::numeric) * 100, 2) AS repeat_purchase_rate
+FROM summary
+ORDER BY cohort_year, purchase_year;
+
+select count(*) filter(where usd_price is null) as null_priced,
+count(*) filter(where usd_price= 0) as zero_pricexd
+from orders
+
+
+-- Revenue Per Customer
+select user_id, sum(usd_price) as revenue
+from orders
+where usd_price is not null
+or usd_price=0
+group by user_id
+order by revenue desc
+
+with rpc as
+(select user_id, sum(usd_price) as revenue, 
+	sum(sum(usd_price)) over() as total_revenue
+	from orders
+	where usd_price is not null
+	or usd_price =0
+	group by user_id
+	order by revenue desc
+	)
+
+select (revenue-total_revenue) as abs_diff,
+round((revenue-total_revenue)/total_revenue*100, 1) as pct_diff
+from rpc
+
+--findings
+-- people tends to buy more products if they are cheap
+-- by doing upselling or cross selling items we could increase the order count and revenue per customer as well 
+select user_id, product_name, count(order_id) as order_count, sum(usd_price) as revenue
+from orders
+where purchase_ts is not null
+group by user_id, product_name
+having count(order_id) >=2
+order by order_count desc
+
+select avg(usd_price)
+from orders
+where product_name = '27in 4K gaming monitor'
+
+-- cumulative distribution
+-- top 25% highly priced products
+-- Sony Play station and lenovo ideapad gaming being the top expensive products amongst others
+
+select product_name, usd_price, cumulative_distribution
+from
+	(SELECT 
+	    product_name,
+		usd_price,
+	    ROUND(
+	        (cume_dist() OVER (ORDER BY usd_price::numeric desc) * 100)::numeric,
+	        2
+	    ) AS cumulative_distribution
+	FROM orders
+	WHERE purchase_ts IS NOT NULL
+	and usd_price is not null) t
+where t.cumulative_distribution <= 25;
+
+-- percent rank
+-- top 10% expensive products
+select 
+product_name, usd_price, pct as pct_rank,
+case when pct <= 10 then 'Expensive Product' end as cat
+from 
+   (select product_name, usd_price,
+	round((percent_rank() over(order by usd_price:: numeric desc)*100):: numeric, 2) as pct
+	from orders
+	where purchase_ts is not null 
+	and  usd_price is not null) x
+where x.pct <= 10;
+
+with sales as
+	(select product_name, sum(usd_price) as total_sales
+	from orders
+	where purchase_ts is not null
+	and usd_price is not null
+	group by product_name
+	order by total_sales desc)
+	
+select product_name, round(avg(total_sales), 2) as avg_price
+from sales
+group by product_name
+order by avg_price desc;
+
+-- orders per product
+
+select product_name, count(*) as total_orders
+from orders
+where purchase_ts is not null
+group by product_name
+order by orders desc;
+
+with bucket as
+	(select product_name, count(*) as total_orders
+	from orders
+	where purchase_ts is not null
+	group by product_name)
+
+select product_name, total_orders,
+case when total_orders <= 500 then 'Low Level Performer'
+     when total_orders <=2500 then 'Mid Level Performer'
+	 else 'High Level Performer'
+	 end as product_bucket
+	 from bucket;
+
+-- unique users over time
+
+with base as
+	(select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month,
+	to_char(purchase_ts, 'Mon') as month_name,
+	count(distinct user_id) as unique_users
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts), to_char(purchase_ts, 'Mon')
+	order by year, month)
+	
+select *,
+round((unique_users:: numeric - lag(unique_users) over(partition by year order by year, month))/
+lag(unique_users) over(partition by year order by year, month) * 100.0, 2) as user_pct_change
+from base;
+
+
+with unique_user as
+	(select extract(year from purchase_ts) as year,
+	extract(month from purchase_ts) as month,
+	count(distinct(user_id)) as curr_unique_user
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts)
+	order by year, month)
+	
+select *, lag(curr_unique_user) over(partition by year order by year, month) as prev_user,
+round((curr_unique_user:: numeric - lag(curr_unique_user) over(partition by year order by year, month))/
+lag(curr_unique_user) over(partition by year order by year, month) * 100.0, 2) as user_pct_change
+from unique_user;
+
+-- comparing same months across years
+-- yoy
+
+with unique_user as
+	(select extract(year from purchase_ts) as year,
+	extract(month from purchase_ts) as month,
+	count(distinct(user_id)) as curr_unique_user
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts)
+	order by year, month)
+
+select *, lag(curr_unique_user) over(partition by month order by year, month) as prev_user,
+round((curr_unique_user:: numeric - lag(curr_unique_user) over(partition by month order by year, month))/ 
+lag(curr_unique_user) over(partition by month order by year, month) * 100.0, 2) as pct_change
+from unique_user;
+
+-- mom 
+-- insights
+-- we can easily spot the sudden fall and spikes across months in the year 2019 
+-- User acquisition significantly increased in 2020, especially through direct and email channels.
+-- in the month of march in 2021 sales are dropped significantly corresponding to the previous month of that year
+-- and it's very unusual cos the amount of users left that is concerning.
+-- we must report the quality of data to the data quality team for more details about this sudden drop particular in 
+-- the month of march and the following months sharing the same pattern..
+-- we need to find out why the users count descreased after the month and what caused them to leave?
+-- and how to engage our customers within ourselves..
+
+-- recommendations:
+-- need to look out the reason for user churning
+-- and customize marketing is highly recommended for the loyal users 
+-- low level performers and mid level have higher chances of turning into loyal and at the same time they can churn
+-- we need to customize marketing specifically for them and Segment low-frequency users and test reactivation campaigns
+
+with mom as
+	(select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month,
+	count(distinct user_id) as curr_unique_users,
+	marketing_channel
+	from orders
+	where purchase_ts is not null
+	group by extract(year from purchase_ts), extract(month from purchase_ts), marketing_channel
+	order by year, month)
+	
+select year, month, curr_unique_users, 
+lag(curr_unique_users) over(partition by marketing_channel order by year, month) as prev_user,
+round((curr_unique_users:: numeric - lag(curr_unique_users) over(partition by marketing_channel order by year, month))/
+lag(curr_unique_users) over(partition by marketing_channel order by year, month) * 100.0, 2) as pct_change,
+marketing_channel
+from mom;
+
+select marketing_channel, count(user_id) as total_users,
+count(distinct user_id) as unique_users
+from orders
+where purchase_ts is not null
+group by marketing_channel
+order by unique_users;
+
+
+
+select extract(year from purchase_ts) as year, 
+count(distinct user_id) as unique_users
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts);
+
+select extract(year from purchase_ts) as year, 
+marketing_channel,
+count(distinct user_id) as unique_users
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts), marketing_channel
+order by year , unique_users desc;
+
+select distinct(account_creation_method)
+from orders
+
+select extract(year from purchase_ts) as year, extract(month from purchase_ts) as month,
+count(distinct user_id) as unique_users
+from orders
+where purchase_ts is not null
+group by extract(year from purchase_ts), extract(month from purchase_ts);
+
+
+-- cohort by first purchase date 
+
+with first_purchase as (
+    select 
+        user_id,
+        min(purchase_ts) as fp_date
+    from orders
+    where purchase_ts is not null
+    group by user_id
+),
+
+cohort_group as (
+    select
+        o.user_id,
+        date_trunc('month', o.purchase_ts) as purchase_month,
+        date_trunc('month', fp.fp_date) as cohort_month
+    from orders o
+    join first_purchase fp
+        on o.user_id = fp.user_id
+),
+
+cohort_counts as (
+    select
+        cohort_month,
+
+        (
+            (extract(year from purchase_month) - extract(year from cohort_month)) * 12
+            +
+            (extract(month from purchase_month) - extract(month from cohort_month))
+        ) as month_number,
+
+        count(distinct user_id) as users
+
+    from cohort_group
+    group by cohort_month, month_number
+),
+
+cohort_retention as (
+    select
+        cohort_month,
+        month_number,
+
+        round(
+            100.0 * users /
+            first_value(users) over (
+                partition by cohort_month
+                order by month_number
+            ),
+            2
+        ) as retention_pct
+
+    from cohort_counts
+)
+
+select
+    cohort_month,
+
+    coalesce(max(case when month_number = 0 then retention_pct end), 0) as m0,
+    coalesce(max(case when month_number = 1 then retention_pct end), 0) as m1,
+    coalesce(max(case when month_number = 2 then retention_pct end), 0) as m2,
+    coalesce(max(case when month_number = 3 then retention_pct end), 0) as m3,
+    coalesce(max(case when month_number = 4 then retention_pct end), 0) as m4,
+    coalesce(max(case when month_number = 5 then retention_pct end), 0) as m5,
+    coalesce(max(case when month_number = 6 then retention_pct end), 0) as m6,
+    coalesce(max(case when month_number = 7 then retention_pct end), 0) as m7,
+    coalesce(max(case when month_number = 8 then retention_pct end), 0) as m8,
+    coalesce(max(case when month_number = 9 then retention_pct end), 0) as m9,
+    coalesce(max(case when month_number = 10 then retention_pct end), 0) as m10,
+    coalesce(max(case when month_number = 11 then retention_pct end), 0) as m11
+
+from cohort_retention
+group by cohort_month
+order by cohort_month;
+
+-- retention based on marketing channel
+
+with first_purchase as (
+    select 
+        user_id,
+        min(purchase_ts) as fp_date
+    from orders
+    where purchase_ts is not null
+    group by user_id
+),
+
+first_channel as (
+    select distinct on (o.user_id)
+        o.user_id,
+        o.marketing_channel
+    from orders o
+    where o.purchase_ts is not null
+    order by o.user_id, o.purchase_ts
+),
+
+cohort_group as (
+    select
+        o.user_id,
+        fc.marketing_channel,
+
+        date_trunc('month', fp.fp_date) as cohort_month,
+        date_trunc('month', o.purchase_ts) as purchase_month
+
+    from orders o
+
+    join first_purchase fp
+        on o.user_id = fp.user_id
+
+    join first_channel fc
+        on o.user_id = fc.user_id
+
+    where o.purchase_ts is not null
+),
+
+cohort_counts as (
+    select
+        cohort_month,
+        marketing_channel,
+
+        (
+            (
+                extract(year from purchase_month)
+                - extract(year from cohort_month)
+            ) * 12
+            +
+            (
+                extract(month from purchase_month)
+                - extract(month from cohort_month)
+            )
+        ) as month_number,
+
+        count(distinct user_id) as users
+
+    from cohort_group
+
+    group by
+        cohort_month,
+        marketing_channel,
+        month_number
+),
+
+cohort_retention as (
+    select
+        cohort_month,
+        marketing_channel,
+        month_number,
+
+        round(
+            100.0 * users /
+            first_value(users) over (
+                partition by cohort_month, marketing_channel
+                order by month_number
+            ),
+            2
+        ) as retention_pct
+
+    from cohort_counts
+)
+
+select
+    cohort_month,
+    marketing_channel,
+
+    coalesce(max(case when month_number = 0  then retention_pct end), 0) as m0,
+    coalesce(max(case when month_number = 1  then retention_pct end), 0) as m1,
+    coalesce(max(case when month_number = 2  then retention_pct end), 0) as m2,
+    coalesce(max(case when month_number = 3  then retention_pct end), 0) as m3,
+    coalesce(max(case when month_number = 4  then retention_pct end), 0) as m4,
+    coalesce(max(case when month_number = 5  then retention_pct end), 0) as m5,
+    coalesce(max(case when month_number = 6  then retention_pct end), 0) as m6,
+    coalesce(max(case when month_number = 7  then retention_pct end), 0) as m7,
+    coalesce(max(case when month_number = 8  then retention_pct end), 0) as m8,
+    coalesce(max(case when month_number = 9  then retention_pct end), 0) as m9,
+    coalesce(max(case when month_number = 10 then retention_pct end), 0) as m10,
+    coalesce(max(case when month_number = 11 then retention_pct end), 0) as m11
+
+from cohort_retention
+
+group by
+    cohort_month,
+    marketing_channel
+
+order by
+    cohort_month,
+    marketing_channel;
+
+
+-- retention by region
+
+with first_purchase as (
+    select 
+        user_id,
+        min(purchase_ts) as fp_date
+    from orders
+    where purchase_ts is not null
+    group by user_id
+),
+
+first_channel as (
+    select distinct on (o.user_id)
+        o.user_id,
+        r.region
+    from orders o
+	join region r
+	on o.country_code= r.country_code
+    where o.purchase_ts is not null
+    order by o.user_id, o.purchase_ts
+),
+
+cohort_group as (
+    select
+        o.user_id,
+        fc.region,
+
+        date_trunc('month', fp.fp_date) as cohort_month,
+        date_trunc('month', o.purchase_ts) as purchase_month
+
+    from orders o
+
+    join first_purchase fp
+        on o.user_id = fp.user_id
+
+    join first_channel fc
+        on o.user_id = fc.user_id
+
+    where o.purchase_ts is not null
+),
+
+cohort_counts as (
+    select
+        cohort_month,
+        region,
+
+        (
+            (
+                extract(year from purchase_month)
+                - extract(year from cohort_month)
+            ) * 12
+            +
+            (
+                extract(month from purchase_month)
+                - extract(month from cohort_month)
+            )
+        ) as month_number,
+
+        count(distinct user_id) as users
+
+    from cohort_group
+
+    group by
+        cohort_month,
+        region,
+        month_number
+),
+
+cohort_retention as (
+    select
+        cohort_month,
+        region,
+        month_number,
+
+        round(
+            100.0 * users /
+            first_value(users) over (
+                partition by cohort_month, region
+                order by month_number
+            ),
+            2
+        ) as retention_pct
+
+    from cohort_counts
+)
+
+select
+    cohort_month,
+    region,
+
+    coalesce(max(case when month_number = 0  then retention_pct end), 0) as m0,
+    coalesce(max(case when month_number = 1  then retention_pct end), 0) as m1,
+    coalesce(max(case when month_number = 2  then retention_pct end), 0) as m2,
+    coalesce(max(case when month_number = 3  then retention_pct end), 0) as m3,
+    coalesce(max(case when month_number = 4  then retention_pct end), 0) as m4,
+    coalesce(max(case when month_number = 5  then retention_pct end), 0) as m5,
+    coalesce(max(case when month_number = 6  then retention_pct end), 0) as m6,
+    coalesce(max(case when month_number = 7  then retention_pct end), 0) as m7,
+    coalesce(max(case when month_number = 8  then retention_pct end), 0) as m8,
+    coalesce(max(case when month_number = 9  then retention_pct end), 0) as m9,
+    coalesce(max(case when month_number = 10 then retention_pct end), 0) as m10,
+    coalesce(max(case when month_number = 11 then retention_pct end), 0) as m11
+
+from cohort_retention
+
+group by
+    cohort_month,
+    region
+
+order by
+    cohort_month,
+    region;
+
+
+select count(*) from orders where purchase_ts is not null;
+
+select count(*) filter (where purchase_ts is null) from orders;
+
+
+select distinct r.region
+from orders o
+join region r
+on o.country_code= r.country_code
+
+select distinct region from region
+
+begin;
+
+update region
+set region= 'EMEA'
+where region = 'LB'
+end;
+
