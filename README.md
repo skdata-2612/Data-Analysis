@@ -14,7 +14,7 @@ Insights and recommendations are provided on the following key areas:
 - **Category 3: Customer Acquisition & Marketing Analysis** 
 - **Category 4: Regional Performance Analysis** 
 
-The SQL queries used to inspect and clean the data for this analysis can be found here [link].
+The SQL queries used to inspect and clean the data for this analysis can be found here (https://github.com/skdata-2612/Data-Analysis/blob/71521a1f812266977796976ca51e0e440d517280/SQL%20queries).
 
 Targed SQL queries regarding various business questions can be found here [link].
 
