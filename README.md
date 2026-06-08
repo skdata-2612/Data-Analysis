@@ -77,19 +77,19 @@ Explain the overarching findings, trends, and themes in 2-3 sentences here. This
 # Insights Deep Dive
 1. Sales Performance Analysis:
 
-**Insight 1.**: Revenue growth accelerated significantly throughout 2020
+* **Insight 1.**: Revenue growth accelerated significantly throughout 2020
 
 Monthly revenue remained relatively stable during 2019 before experiencing strong growth in 2020. Revenue increased consistently from the first quarter of 2020 onwards, indicating growing customer demand and improved sales performance. The positive trendline further confirms a sustained upward trajectory throughout the analysis period.
 
-**Insight 2.**: December 2020 recorded the highest monthly revenue
+* **Insight 2.**: December 2020 recorded the highest monthly revenue
 
 The company achieved its peak monthly revenue of $549,435.13 in December 2020, making it the strongest-performing month in the dataset. This spike may be attributed to increased consumer spending during the holiday season, successful marketing campaigns, or higher demand for gaming-related products.
 
-**Insight 3.**: Seasonal sales patterns were evident in the second half of 2020
+* **Insight 3.**: Seasonal sales patterns were evident in the second half of 2020
 
 Revenue was generally stronger during the second half of 2020 compared to the first half, with notable increases between August and December. This pattern suggests that sales performance may be influenced by seasonal factors such as product launches, holiday shopping periods, and promotional events.
 
-**Insight 4.**: Early 2021 results should be interpreted with caution
+* **Insight 4.**: Early 2021 results should be interpreted with caution
 
 Although revenue appears to decline in January and February 2021, the dataset contains only two months of data for 2021. As a result, these figures represent a partial-year period and should not be directly compared with previous full-year performance.
   
