@@ -101,39 +101,52 @@ Although revenue appears to decline in January and February 2021, the dataset co
 
 2. Product Performance Analysis:
 
-* **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **Main insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **Main insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **Main insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 1.** 27in 4K Gaming Monitor is the Top Revenue Driver
 
-[Visualization specific to category 2]
+  The 27in 4K Gaming Monitor generated the highest sales ($1.97M) and attracted 4,358 users. Its relatively affordable AOV of $417 appears to encourage higher purchase volume, making it the strongest contributor to overall revenue.
+  
+* **insight 2.** Nintendo Switch Leads in Customer Acquisition
+
+  The Nintendo Switch recorded the highest user count (9,686 users), more than double any other product. However, its lower AOV ($160) limits revenue growth, suggesting strong popularity but lower spend per customer.
+  
+* **insight 3.** Sony PlayStation 5 Bundle Achieves the Highest Customer Spend
+
+  The Sony PlayStation 5 Bundle has the highest AOV ($1,627), driven by its bundled offering. Despite having only 900 users, it generated $1.59M in sales, demonstrating the effectiveness of premium bundles in increasing order value.
+  
+* **insight 4.** Different Products Play Different Roles in the Portfolio
+
+  Lower-priced products such as the Nintendo Switch and gaming monitor drive customer volume, while premium products such as the PS5 Bundle and Lenovo IdeaPad Gaming 3 drive higher spending per transaction. A balanced mix of volume and premium products is supporting overall sales performance.
+
+  
+<img width="1577" height="413" alt="image" src="https://github.com/user-attachments/assets/4f82d420-ef9d-4c2b-a22c-cfdc24b03e2b" />
+
+<img width="1601" height="567" alt="image" src="https://github.com/user-attachments/assets/45f2a7b6-9a23-43db-94c1-14e4cab7c8f9" />
+
+<img width="1674" height="608" alt="image" src="https://github.com/user-attachments/assets/5911eb31-6806-4e3c-8725-7040ba917eb0" />
 
 
 3. Customer Acquisition and Marketing Effectiveness:
 
-* **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
 
 [Visualization specific to category 3]
 
 
 4. Regional Performance Analysis:
 
-* **Main insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
   
-* **Main insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
 
 [Visualization specific to category 4]
 
