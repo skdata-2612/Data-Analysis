@@ -127,53 +127,118 @@ Although revenue appears to decline in January and February 2021, the dataset co
 
 3. Customer Acquisition and Marketing Effectiveness:
 
-* **insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 1.** Direct Marketing Drives the Majority of Revenue
 
-[Visualization specific to category 3]
+  The Direct channel contributes approximately 85% of total revenue ($5.2M), significantly outperforming all other acquisition channels. Email and Affiliate channels provide secondary support, while Social Media and Unknown channels contribute minimal revenue.
+  
+* **insight 2.** Website Is the Dominant Purchase Platform
+
+  The Website platform accounts for 97% of total revenue and 90% of purchasing users, making it the primary driver of online sales. In contrast, Mobile contributes only 3% of revenue, suggesting customers strongly prefer completing purchases through the website.
+  
+* **insight 3.** Desktop Remains the Primary Customer Entry Point
+
+  Of the 19,850 total users, approximately 75% created accounts via Desktop, compared to 20% via Mobile. Desktop account creation increased consistently from 2019–2021, indicating sustained preference for desktop onboarding despite growing mobile adoption.
+  
+* **insight 4.** Mobile Adoption Is Growing but Has Not Yet Translated Into Revenue
+
+  Mobile account creation shows an upward trend and is gradually narrowing the gap with Desktop. However, Mobile users contribute only a small share of purchases and revenue, highlighting a potential opportunity to improve the mobile shopping experience and conversion rates.
+
+* **insight 5.** Low Adoption Channels Have Minimal Business Impact
+
+  Tablet (~2% of users), Unknown (~4% of users), and TV (22 users, <1%) account creation methods represent a very small portion of the user base and have remained relatively flat over time. These channels currently have limited impact on acquisition and revenue performance.
+
+
+<img width="996" height="526" alt="image" src="https://github.com/user-attachments/assets/4b943a1f-77a8-4ba0-9695-a32f93f10f3d" />
+
+<img width="1118" height="452" alt="image" src="https://github.com/user-attachments/assets/b9e8ed47-1c73-41b7-b605-f0cd293030e9" />
+
+<img width="1241" height="450" alt="image" src="https://github.com/user-attachments/assets/a702b274-66a1-4b4e-af65-bda04b625b3d" />
+
+<img width="869" height="537" alt="image" src="https://github.com/user-attachments/assets/57af80de-ef47-46c9-9e37-9f2256c5ff93" />
+
+<img width="599" height="450" alt="image" src="https://github.com/user-attachments/assets/fe050ce5-acaa-4bba-8ecb-71c88c14d60a" />
 
 
 4. Regional Performance Analysis:
 
-* **insight 1.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 2.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 3.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
-  
-* **insight 4.** More detail about the supporting analysis about this insight, including time frames, quantitative values, and observations about trends.
+* **insight 1.** North America is the Primary Revenue Driver
 
-[Visualization specific to category 4]
+  North America generated $3.21M, accounting for 52% of total revenue. Revenue remained consistently higher than all other regions throughout the analysis period, with a notable surge during the second half of 2020 and a peak in December 2020. The region's dominance indicates a highly established customer base and strong market penetration.
+  
+* **insight 2.** Revenue Concentration is Highly Dependent on the US Market
 
+  The United States contributed approximately $2.96M, representing 48% of total company revenue. Since North America accounts for 52% of revenue overall, the majority of the region's performance is driven by the US alone. This highlights both a major strength and a potential business risk, as revenue is heavily concentrated in a single country.
+  
+* **insight 3.** EMEA Provides Stable Secondary Growth
+
+  EMEA generated $1.86M, contributing 30% of total revenue. The region demonstrated steady performance across the entire period and followed a growth pattern similar to North America, particularly during late 2020. Additionally, the United Kingdom ($475K) and Germany ($256K) ranked among the top-performing countries, reinforcing EMEA's importance as the second-largest revenue contributor.
+  
+* **insight 4.** Emerging Regions Present Expansion Opportunities
+
+  APAC contributed $743K (12%) and LATAM generated $336K (5%) of total revenue. While these regions currently lag behind North America and EMEA, the time-series chart shows gradual growth during 2020, particularly in APAC. Countries such as Japan ($221K) and Australia ($188K) indicate existing market traction that could be leveraged through targeted expansion strategies to diversify revenue sources and reduce dependence on mature markets.
+
+<img width="1413" height="583" alt="image" src="https://github.com/user-attachments/assets/41143796-c0d4-4f29-a599-abb9b42b2a37" />
+
+<img width="1811" height="696" alt="image" src="https://github.com/user-attachments/assets/fefde266-5e68-48f2-8dfb-184f98921e2a" />
+
+<img width="1301" height="379" alt="image" src="https://github.com/user-attachments/assets/95cc338b-25cd-424b-ad3a-691aee58ebe9" />
 
 
 # Recommendations:
 
-Based on the insights and findings above, we would recommend the [stakeholder team] to consider the following: 
+Based on the insights and findings above, we would recommend the Sales, Marketing, and Business Strategy teams to consider the following: 
 
-* Specific observation that is related to a recommended action. **Recommendation or general guidance based on this observation.**
-  
-* Specific observation that is related to a recommended action. **Recommendation or general guidance based on this observation.**
-  
-* Specific observation that is related to a recommended action. **Recommendation or general guidance based on this observation.**
-  
-* Specific observation that is related to a recommended action. **Recommendation or general guidance based on this observation.**
-  
-* Specific observation that is related to a recommended action. **Recommendation or general guidance based on this observation.**
-  
+* **Recommendation 1**: Expand Growth Efforts in Emerging International Markets.
 
+ **Observation:** North America contributes 52% of total revenue, while the United States alone accounts for 48% of company revenue.
+
+ Recommendation: Increase marketing investment and localized campaigns in high-potential markets such as Japan, Australia, Germany, and the United Kingdom to diversify revenue sources and reduce reliance on a single geographic market.
+  
+* **Recommendation 2:** Leverage High-Performing Products for Cross-Selling Opportunities
+
+**Observation:** The 27in 4K Gaming Monitor and Nintendo Switch generate the highest revenue and customer volumes.
+
+**Recommendation:** Bundle complementary accessories, warranties, and gaming peripherals with these products to increase average order value and maximize revenue from existing customer demand.
+
+* **Recommendation 3:** Expand Premium Product Bundling Strategies
+
+**Observation:** The Sony PlayStation 5 Bundle generated $1.59M in revenue despite serving only 900 customers due to its exceptionally high average order value.
+
+**Recommendation:** Develop additional premium bundles across other product categories to encourage higher customer spending while maintaining a balanced product portfolio.
+
+* **Recommendation 4:** Improve Mobile Conversion Performance
+
+**Observation:** Mobile account creation continues to grow, yet mobile purchases contribute only 3% of total revenue.
+
+**Recommendation:** Review the mobile shopping experience, checkout process, and application performance to identify barriers preventing mobile users from converting into paying customers.
+
+* **Recommendation 5:** Prepare for Seasonal Revenue Peaks
+
+**Observation:** Revenue increased significantly during the second half of 2020, with December 2020 recording the highest monthly sales.
+
+**Recommendation:** Align inventory planning, promotional campaigns, and operational resources ahead of peak seasonal periods to capitalize on predictable increases in customer demand.
+  
 
 # Assumptions and Caveats:
 
 Throughout the analysis, multiple assumptions were made to manage challenges with the data. These assumptions and caveats are noted below:
 
-* Assumption 1 (ex: missing country records were for customers based in the US, and were re-coded to be US citizens)
-  
-* Assumption 1 (ex: data for December 2021 was missing - this was imputed using a combination of historical trends and December 2020 data)
-  
-* Assumption 1 (ex: because 3% of the refund date column contained non-sensical dates, these were excluded from the analysis)
+* **Caveat 1:** Partial-Year Data for 2021
+
+   The dataset contains only January and February 2021 transactions. Consequently, revenue trends observed for 2021 represent a partial-year period and should not    be directly compared with full-year performance from 2019 or 2020.
+
+* **Caveat 2:** Analysis Focuses on Revenue Rather Than Profitability
+
+All performance evaluations were based on revenue, customer counts, and average order values. Product costs, marketing expenses, shipping costs, and profit margins were not available and therefore could not be incorporated into the analysis.
+
+* **Caveat 3:** Marketing Attribution Is Based on Available Acquisition Data
+
+Customer acquisition effectiveness was assessed using the marketing channel associated with each transaction. Multi-channel customer journeys and attribution effects were not available, which may understate the contribution of supporting marketing channels.
+
+* **Caveat 4:** Regional Insights Depend on Country Mapping Accuracy
+
+Regional performance analysis assumes that all country codes were accurately mapped to their corresponding geographic regions. Any classification errors could affect regional revenue calculations.
+
+* **Caveat 5:** Historical Trends Do Not Guarantee Future Performance
+
+The analysis is based solely on historical transaction data collected between 2019 and early 2021. Future business performance may be influenced by market conditions, consumer behavior changes, competitive actions, and product launches that are not captured within the dataset.
