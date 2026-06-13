@@ -68,9 +68,11 @@ Key fields include:
 
 ### Overview of Findings
 
-Explain the overarching findings, trends, and themes in 2-3 sentences here. This section should address the question: "If a stakeholder were to take away 3 main insights from your project, what are the most important things they should know?" You can put yourself in the shoes of a specific stakeholder - for example, a marketing manager or finance director - to think creatively about this section.
+GameZone experienced strong revenue growth throughout the analysis period, generating over $6.15M in sales across multiple product categories and regions. Performance was primarily driven by North America, high-demand gaming products, and direct acquisition channels, with revenue accelerating significantly during 2020. The findings highlight opportunities to diversify geographic revenue, improve mobile conversion, and expand premium product offerings to support future growth.
 
-[Visualization, including a graph of overall trends or snapshot of a dashboard]
+<img width="1282" height="718" alt="image" src="https://github.com/user-attachments/assets/ac318fa3-50ba-42ea-b7de-ed6a25c20e23" />
+
+
 
 
 
